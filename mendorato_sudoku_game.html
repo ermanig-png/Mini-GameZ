@@ -1,0 +1,409 @@
+
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: var(--font-sans); }
+#game-wrap { padding: 1.5rem 0; max-width: 680px; }
+#intro-screen { text-align: center; padding: 2rem 1rem; }
+#intro-screen .logo { font-size: 28px; font-weight: 500; color: var(--color-text-primary); letter-spacing: -0.5px; margin-bottom: 6px; }
+#intro-screen .logo span { color: #C8102E; }
+#intro-screen .tagline { font-size: 14px; color: var(--color-text-secondary); margin-bottom: 1.5rem; }
+.story-card { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem 1.5rem; margin: 0 auto 1.5rem; max-width: 520px; text-align: left; }
+.story-card p { font-size: 14px; color: var(--color-text-primary); line-height: 1.7; margin-bottom: 0.75rem; }
+.story-card p:last-child { margin-bottom: 0; }
+.story-card strong { color: #C8102E; }
+.chars-grid { display: grid; grid-template-columns: repeat(4, 1fr); gap: 10px; margin: 0 auto 1.5rem; max-width: 520px; }
+.char-card { background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 0.75rem 0.5rem; text-align: center; }
+.char-avatar { width: 44px; height: 44px; border-radius: 50%; margin: 0 auto 6px; display: flex; align-items: center; justify-content: center; font-size: 20px; }
+.char-name { font-size: 12px; font-weight: 500; color: var(--color-text-primary); }
+.char-role { font-size: 11px; color: var(--color-text-secondary); margin-top: 2px; }
+.btn-primary { background: #C8102E; color: #fff; border: none; border-radius: var(--border-radius-md); padding: 10px 28px; font-size: 15px; font-weight: 500; cursor: pointer; transition: opacity 0.15s; }
+.btn-primary:hover { opacity: 0.88; }
+#game-screen { display: none; }
+#result-screen { display: none; }
+.game-header { display: flex; align-items: center; justify-content: space-between; margin-bottom: 1rem; padding: 0 4px; }
+.game-title { font-size: 16px; font-weight: 500; color: var(--color-text-primary); }
+.game-meta { font-size: 13px; color: var(--color-text-secondary); }
+.difficulty-row { display: flex; gap: 8px; margin-bottom: 1rem; }
+.diff-btn { flex: 1; padding: 6px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); background: var(--color-background-secondary); font-size: 12px; color: var(--color-text-secondary); cursor: pointer; transition: all 0.15s; }
+.diff-btn.active { border-color: #C8102E; color: #C8102E; background: var(--color-background-primary); font-weight: 500; }
+.sudoku-wrap { position: relative; width: 100%; aspect-ratio: 1; max-width: 468px; margin: 0 auto 1rem; }
+.sudoku-grid { display: grid; grid-template-columns: repeat(9, 1fr); gap: 0; border: 2px solid var(--color-text-primary); border-radius: 4px; overflow: hidden; width: 100%; height: 100%; }
+.cell { position: relative; aspect-ratio: 1; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: clamp(10px, 2.5vw, 18px); font-weight: 400; color: var(--color-text-primary); background: var(--color-background-primary); border: 0.5px solid var(--color-border-tertiary); transition: background 0.1s; user-select: none; }
+.cell.given { font-weight: 500; background: var(--color-background-secondary); }
+.cell.selected { background: #fff3f3; border-color: #C8102E; z-index: 2; }
+.cell.highlight { background: #fdf0f0; }
+.cell.error { color: #C8102E; }
+.cell.correct-anim { animation: pop 0.3s ease; }
+.cell.box-right { border-right: 2px solid var(--color-text-primary); }
+.cell.box-bottom { border-bottom: 2px solid var(--color-text-primary); }
+.cell .emoji-hint { font-size: clamp(8px, 2vw, 14px); }
+.cell .val { font-size: clamp(10px, 2.2vw, 17px); }
+.cell .note { font-size: clamp(6px, 1.2vw, 9px); color: var(--color-text-secondary); position: absolute; top: 1px; left: 2px; line-height: 1.1; }
+@keyframes pop { 0%{transform:scale(1)} 50%{transform:scale(1.25)} 100%{transform:scale(1)} }
+.numpad { display: grid; grid-template-columns: repeat(9, 1fr); gap: 4px; max-width: 468px; margin: 0 auto 1rem; }
+.num-btn { aspect-ratio: 1; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); background: var(--color-background-secondary); font-size: clamp(11px, 2vw, 16px); font-weight: 500; color: var(--color-text-primary); cursor: pointer; display: flex; align-items: center; justify-content: center; transition: all 0.12s; }
+.num-btn:hover { background: var(--color-background-primary); border-color: #C8102E; color: #C8102E; }
+.num-btn.char-btn { font-size: clamp(10px, 1.8vw, 15px); }
+.actions-row { display: flex; gap: 8px; max-width: 468px; margin: 0 auto 0.75rem; }
+.act-btn { flex: 1; padding: 7px 4px; border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); background: var(--color-background-secondary); font-size: 12px; color: var(--color-text-secondary); cursor: pointer; display: flex; align-items: center; justify-content: center; gap: 5px; transition: all 0.12s; }
+.act-btn:hover { border-color: #C8102E; color: #C8102E; }
+.act-btn i { font-size: 15px; }
+.progress-bar-wrap { max-width: 468px; margin: 0 auto; }
+.progress-label { display: flex; justify-content: space-between; font-size: 12px; color: var(--color-text-secondary); margin-bottom: 4px; }
+.progress-bar { height: 4px; background: var(--color-background-secondary); border-radius: 2px; overflow: hidden; }
+.progress-fill { height: 100%; background: #C8102E; border-radius: 2px; transition: width 0.3s ease; }
+#result-screen { text-align: center; padding: 2rem 1rem; }
+.result-emoji { font-size: 56px; margin-bottom: 1rem; }
+.result-title { font-size: 22px; font-weight: 500; color: var(--color-text-primary); margin-bottom: 0.5rem; }
+.result-sub { font-size: 15px; color: var(--color-text-secondary); margin-bottom: 1.5rem; line-height: 1.6; }
+.reveal-card { background: var(--color-background-secondary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-lg); padding: 1.25rem 1.5rem; margin: 0 auto 1.5rem; max-width: 420px; }
+.reveal-card .culprit { font-size: 32px; margin-bottom: 8px; }
+.reveal-card h3 { font-size: 18px; font-weight: 500; color: #C8102E; margin-bottom: 6px; }
+.reveal-card p { font-size: 14px; color: var(--color-text-secondary); line-height: 1.6; }
+.btn-row { display: flex; gap: 10px; justify-content: center; flex-wrap: wrap; }
+.btn-secondary { background: var(--color-background-secondary); color: var(--color-text-primary); border: 0.5px solid var(--color-border-tertiary); border-radius: var(--border-radius-md); padding: 10px 20px; font-size: 14px; cursor: pointer; transition: all 0.15s; }
+.btn-secondary:hover { border-color: #C8102E; color: #C8102E; }
+.toast { position: fixed; bottom: 20px; left: 50%; transform: translateX(-50%); background: #C8102E; color: #fff; padding: 8px 20px; border-radius: var(--border-radius-md); font-size: 13px; font-weight: 500; pointer-events: none; opacity: 0; transition: opacity 0.3s; z-index: 999; white-space: nowrap; }
+.toast.show { opacity: 1; }
+</style>
+
+<div id="game-wrap" aria-label="Mendorato Sudoku — O Caso do Amendoim Desaparecido">
+
+<div id="intro-screen">
+  <div class="logo">MENDO<span>RATO</span></div>
+  <div class="tagline">Mini Games · O Caso do Amendoim Desaparecido</div>
+  <div class="story-card">
+    <p>Era uma tarde de sexta-feira quando os pacotes de Mendorato desapareceram da reunião. Quatro suspeitos, quatro oportunidades... e só uma pode ter sido <strong>a culpada</strong>.</p>
+    <p>Resolva o Sudoku e descubra quem comeu o amendoim de cada um. Use os emojis como pistas — cada personagem aparece uma vez em cada linha, coluna e bloco 3×3.</p>
+  </div>
+  <div class="chars-grid">
+    <div class="char-card">
+      <div class="char-avatar" style="background:#fff3cd">🕵️</div>
+      <div class="char-name">Gustavo</div>
+      <div class="char-role">O Detetive</div>
+    </div>
+    <div class="char-card">
+      <div class="char-avatar" style="background:#fce4ec">🎲</div>
+      <div class="char-name">Nanda</div>
+      <div class="char-role">A Cronicamente Online</div>
+    </div>
+    <div class="char-card">
+      <div class="char-avatar" style="background:#e8f5e9">🎮</div>
+      <div class="char-name">Tutu</div>
+      <div class="char-role">O Gamer</div>
+    </div>
+    <div class="char-card">
+      <div class="char-avatar" style="background:#e3f2fd">🎉</div>
+      <div class="char-name">Guto</div>
+      <div class="char-role">O Festeiro</div>
+    </div>
+  </div>
+  <div class="chars-grid" style="grid-template-columns:repeat(4,1fr); max-width:300px">
+    <div class="char-card" style="grid-column:1/3">
+      <div class="char-avatar" style="background:#f3e5f5; font-size:24px">🐶</div>
+      <div class="char-name">Paçoca</div>
+      <div class="char-role" style="color:#C8102E; font-weight:500">A Culpada</div>
+    </div>
+    <div class="char-card" style="grid-column:3/5">
+      <div class="char-avatar" style="background:#fbe9e7; font-size:24px">🥜</div>
+      <div class="char-name">Mendorato</div>
+      <div class="char-role">O Pacote Sumido</div>
+    </div>
+  </div>
+  <button class="btn-primary" onclick="startGame()">Começar a investigação</button>
+</div>
+
+<div id="game-screen">
+  <div class="game-header">
+    <span class="game-title">🥜 O Caso do Amendoim</span>
+    <span class="game-meta" id="progress-text">0 / 45 resolvidos</span>
+  </div>
+  <div class="difficulty-row">
+    <button class="diff-btn active" id="diff-facil" onclick="setDiff('facil')">Fácil</button>
+    <button class="diff-btn" id="diff-medio" onclick="setDiff('medio')">Médio</button>
+    <button class="diff-btn" id="diff-dificil" onclick="setDiff('dificil')">Difícil</button>
+  </div>
+  <div class="sudoku-wrap">
+    <div class="sudoku-grid" id="sudoku-grid"></div>
+  </div>
+  <div class="numpad" id="numpad"></div>
+  <div class="actions-row">
+    <button class="act-btn" onclick="eraseCell()"><i class="ti ti-eraser" aria-hidden="true"></i> Apagar</button>
+    <button class="act-btn" onclick="toggleNotes()"><i class="ti ti-pencil" aria-hidden="true"></i> <span id="note-label">Notas</span></button>
+    <button class="act-btn" onclick="getHint()"><i class="ti ti-bulb" aria-hidden="true"></i> Dica (<span id="hints-left">3</span>)</button>
+    <button class="act-btn" onclick="newPuzzle()"><i class="ti ti-refresh" aria-hidden="true"></i> Novo</button>
+  </div>
+  <div class="progress-bar-wrap">
+    <div class="progress-label"><span>Progresso</span><span id="pct-label">0%</span></div>
+    <div class="progress-bar"><div class="progress-fill" id="progress-fill" style="width:0%"></div></div>
+  </div>
+</div>
+
+<div id="result-screen">
+  <div class="result-emoji">🐶🥜</div>
+  <div class="result-title">Caso encerrado!</div>
+  <div class="result-sub">O Sudoku foi resolvido. A culpada sempre esteve bem na nossa frente...</div>
+  <div class="reveal-card">
+    <div class="culprit">🐶</div>
+    <h3>Paçoca comeu tudo!</h3>
+    <p>Enquanto Gustavo investigava os suspeitos, a cachorra Paçoca aproveitou a confusão e devorou os pacotes de Mendorato. Como sempre, o crime perfeito começa com uma focinha inocente.</p>
+  </div>
+  <div class="btn-row">
+    <button class="btn-primary" onclick="newPuzzle()">Jogar novamente</button>
+    <button class="btn-secondary" onclick="shareResult()">Compartilhar 🐶</button>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+</div>
+
+<script>
+const EMOJIS = ['🕵️','🎲','🎮','🎉','🐶','🥜','📦','💡','🎯'];
+const NAMES  = {1:'Gustavo',2:'Nanda',3:'Tutu',4:'Guto',5:'Paçoca',6:'Mendorato',7:'Pacote',8:'Dica',9:'Pista'};
+
+let puzzle = [], solution = [], userGrid = [], notes = [], selected = -1, noteMode = false, hints = 3, currentDiff = 'facil', solved = false;
+
+const BASE = [
+  [5,3,4,6,7,8,9,1,2],
+  [6,7,2,1,9,5,3,4,8],
+  [1,9,8,3,4,2,5,6,7],
+  [8,5,9,7,6,1,4,2,3],
+  [4,2,6,8,5,3,7,9,1],
+  [7,1,3,9,2,4,8,5,6],
+  [9,6,1,5,3,7,2,8,4],
+  [2,8,7,4,1,9,6,3,5],
+  [3,4,5,2,8,6,1,7,9]
+];
+
+const GIVENS = { facil: 40, medio: 30, dificil: 22 };
+
+function shuffleBase() {
+  const b = BASE.map(r=>[...r]);
+  const grpA = [[0,1,2],[1,2,0],[2,0,1]][Math.floor(Math.random()*3)];
+  const grpB = [[3,4,5],[4,5,3],[5,3,4]][Math.floor(Math.random()*3)];
+  const grpC = [[6,7,8],[7,8,6],[8,6,7]][Math.floor(Math.random()*3)];
+  const rowOrder = [...grpA,...grpB,...grpC];
+  const numMap = {};
+  const perm = [1,2,3,4,5,6,7,8,9].sort(()=>Math.random()-0.5);
+  [1,2,3,4,5,6,7,8,9].forEach((n,i)=>numMap[n]=perm[i]);
+  return rowOrder.map(r=>b[r].map(v=>numMap[v]));
+}
+
+function makePuzzle(diff) {
+  const sol = shuffleBase();
+  const giveCount = GIVENS[diff];
+  const puz = sol.map(r=>[...r]);
+  let cells = [];
+  for(let i=0;i<81;i++) cells.push(i);
+  cells.sort(()=>Math.random()-0.5);
+  let removed = 0;
+  for(let i=0;i<81 && removed < 81-giveCount;i++) {
+    const idx=cells[i], r=Math.floor(idx/9), c=idx%9;
+    const orig=puz[r][c];
+    puz[r][c]=0;
+    if(hasUniqueSolution(puz)) { removed++; }
+    else { puz[r][c]=orig; }
+  }
+  return { puz, sol };
+}
+
+function hasUniqueSolution(g) {
+  const flat = g.map(r=>[...r]);
+  let count = 0;
+  function solve(pos) {
+    if(pos===81){count++;return count<2;}
+    const r=Math.floor(pos/9),c=pos%9;
+    if(flat[r][c]!==0) return solve(pos+1);
+    for(let n=1;n<=9;n++){
+      if(isValid(flat,r,c,n)){
+        flat[r][c]=n;
+        if(!solve(pos+1)) return false;
+        flat[r][c]=0;
+      }
+    }
+    return true;
+  }
+  solve(0);
+  return count===1;
+}
+
+function isValid(g,row,col,num) {
+  for(let i=0;i<9;i++) if(g[row][i]===num && i!==col) return false;
+  for(let i=0;i<9;i++) if(g[i][col]===num && i!==row) return false;
+  const br=Math.floor(row/3)*3, bc=Math.floor(col/3)*3;
+  for(let i=br;i<br+3;i++) for(let j=bc;j<bc+3;j++) if(g[i][j]===num && (i!==row||j!==col)) return false;
+  return true;
+}
+
+function setDiff(d) {
+  currentDiff = d;
+  ['facil','medio','dificil'].forEach(x=>document.getElementById('diff-'+x).classList.remove('active'));
+  document.getElementById('diff-'+d).classList.add('active');
+  newPuzzle();
+}
+
+function startGame() {
+  document.getElementById('intro-screen').style.display='none';
+  document.getElementById('game-screen').style.display='block';
+  newPuzzle();
+}
+
+function newPuzzle() {
+  solved=false; hints=3; noteMode=false; selected=-1;
+  document.getElementById('hints-left').textContent='3';
+  document.getElementById('note-label').textContent='Notas';
+  const {puz, sol} = makePuzzle(currentDiff);
+  puzzle=[...puz.map(r=>[...r])];
+  solution=[...sol.map(r=>[...r])];
+  userGrid=puz.map(r=>[...r]);
+  notes=Array.from({length:81},()=>new Set());
+  if(document.getElementById('result-screen').style.display==='block') {
+    document.getElementById('result-screen').style.display='none';
+    document.getElementById('game-screen').style.display='block';
+  }
+  renderGrid(); renderNumpad(); updateProgress();
+}
+
+function renderGrid() {
+  const g = document.getElementById('sudoku-grid');
+  g.innerHTML='';
+  for(let i=0;i<81;i++) {
+    const r=Math.floor(i/9), c=i%9;
+    const cell=document.createElement('div');
+    cell.className='cell';
+    cell.dataset.idx=i;
+    if(c===2||c===5) cell.classList.add('box-right');
+    if(r===2||r===5) cell.classList.add('box-bottom');
+    if(puzzle[r][c]!==0) {
+      cell.classList.add('given');
+      cell.innerHTML=`<span class="emoji-hint">${EMOJIS[puzzle[r][c]-1]}</span>`;
+    } else if(userGrid[r][c]!==0) {
+      if(!isValid(userGrid,r,c,userGrid[r][c])) cell.classList.add('error');
+      cell.innerHTML=`<span class="val">${EMOJIS[userGrid[r][c]-1]}</span>`;
+    } else if(notes[i].size>0) {
+      const noteStr=[...notes[i]].sort((a,b)=>a-b).map(n=>EMOJIS[n-1]).join('');
+      cell.innerHTML=`<span class="note">${noteStr}</span>`;
+    }
+    cell.onclick=()=>selectCell(i);
+    g.appendChild(cell);
+  }
+  if(selected>=0) highlightCells(selected);
+}
+
+function renderNumpad() {
+  const np=document.getElementById('numpad');
+  np.innerHTML='';
+  for(let n=1;n<=9;n++) {
+    const btn=document.createElement('button');
+    btn.className='num-btn char-btn';
+    btn.textContent=EMOJIS[n-1];
+    btn.title=NAMES[n];
+    btn.onclick=()=>inputNum(n);
+    np.appendChild(btn);
+  }
+}
+
+function selectCell(idx) {
+  selected=idx;
+  const r=Math.floor(idx/9), c=idx%9;
+  if(puzzle[r][c]!==0) { selected=-1; return; }
+  document.querySelectorAll('.cell').forEach(el=>el.classList.remove('selected','highlight'));
+  highlightCells(idx);
+}
+
+function highlightCells(idx) {
+  const r=Math.floor(idx/9), c=idx%9;
+  const val=userGrid[r][c]||puzzle[r][c];
+  document.querySelectorAll('.cell').forEach(el=>{
+    const i=parseInt(el.dataset.idx);
+    const cr=Math.floor(i/9), cc=i%9;
+    if(i===idx){el.classList.add('selected');return;}
+    if(cr===r||cc===c||(Math.floor(cr/3)===Math.floor(r/3)&&Math.floor(cc/3)===Math.floor(c/3)))
+      el.classList.add('highlight');
+    if(val>0){
+      const cv=puzzle[cr][cc]||userGrid[cr][cc];
+      if(cv===val) el.classList.add('highlight');
+    }
+  });
+}
+
+function inputNum(n) {
+  if(selected<0) return;
+  const r=Math.floor(selected/9), c=selected%9;
+  if(puzzle[r][c]!==0) return;
+  if(noteMode) {
+    if(notes[selected].has(n)) notes[selected].delete(n); else notes[selected].add(n);
+  } else {
+    notes[selected].clear();
+    userGrid[r][c]=n;
+    if(n===solution[r][c]) {
+      const cell=document.querySelectorAll('.cell')[selected];
+      cell.classList.add('correct-anim');
+      setTimeout(()=>cell.classList.remove('correct-anim'),300);
+    }
+  }
+  renderGrid(); updateProgress(); checkComplete();
+}
+
+function eraseCell() {
+  if(selected<0) return;
+  const r=Math.floor(selected/9), c=selected%9;
+  if(puzzle[r][c]!==0) return;
+  userGrid[r][c]=0; notes[selected].clear();
+  renderGrid(); updateProgress();
+}
+
+function toggleNotes() {
+  noteMode=!noteMode;
+  document.getElementById('note-label').textContent=noteMode?'Notas ON':'Notas';
+}
+
+function getHint() {
+  if(hints<=0){showToast('Sem dicas restantes!');return;}
+  const empties=[];
+  for(let i=0;i<81;i++){const r=Math.floor(i/9),c=i%9;if(puzzle[r][c]===0&&userGrid[r][c]===0)empties.push(i);}
+  if(empties.length===0){showToast('Nenhuma célula vazia!');return;}
+  const idx=empties[Math.floor(Math.random()*empties.length)];
+  const r=Math.floor(idx/9),c=idx%9;
+  userGrid[r][c]=solution[r][c];
+  notes[idx].clear();
+  hints--;
+  document.getElementById('hints-left').textContent=hints;
+  selected=idx;
+  renderGrid(); updateProgress(); checkComplete();
+  showToast('Pista: '+EMOJIS[solution[r][c]-1]+' '+NAMES[solution[r][c]]);
+}
+
+function updateProgress() {
+  let correct=0, total=0;
+  for(let r=0;r<9;r++) for(let c=0;c<9;c++) {
+    if(puzzle[r][c]===0){total++;if(userGrid[r][c]===solution[r][c])correct++;}
+  }
+  const pct=total>0?Math.round(correct/total*100):0;
+  document.getElementById('progress-text').textContent=correct+' / '+total+' resolvidos';
+  document.getElementById('pct-label').textContent=pct+'%';
+  document.getElementById('progress-fill').style.width=pct+'%';
+}
+
+function checkComplete() {
+  for(let r=0;r<9;r++) for(let c=0;c<9;c++) {
+    if(userGrid[r][c]!==solution[r][c]) return;
+  }
+  solved=true;
+  setTimeout(()=>{
+    document.getElementById('game-screen').style.display='none';
+    document.getElementById('result-screen').style.display='block';
+  },600);
+}
+
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2000);
+}
+
+function shareResult() {
+  showToast('Compartilhe: #MendoratoSudoku 🐶🥜');
+  sendPrompt('Quero compartilhar minha vitória no Mendorato Sudoku nas redes sociais! Pode me ajudar a criar um post divertido sobre o Detetive Gustavo descobrir que a Paçoca comeu o amendoim?');
+}
+</script>
