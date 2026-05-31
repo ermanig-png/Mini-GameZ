@@ -1,0 +1,46 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Mendorato Mini GameZ</title>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body { font-family: Arial, sans-serif; background: #1a1a1a; color: #fff; min-height: 100vh; }
+  header { background: #C8102E; padding: 1.5rem 2rem; text-align: center; }
+  header h1 { font-size: 28px; letter-spacing: 1px; }
+  header p { font-size: 14px; opacity: .8; margin-top: 4px; }
+  .grid { display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr)); gap: 20px; padding: 2rem; max-width: 900px; margin: 0 auto; }
+  .card { background: #2d2d2d; border-radius: 12px; padding: 1.5rem; text-decoration: none; color: #fff; transition: transform .2s, background .2s; border: 1px solid #3a3a3a; }
+  .card:hover { transform: translateY(-4px); background: #383838; }
+  .card .icon { font-size: 48px; margin-bottom: 12px; display: block; }
+  .card h2 { font-size: 18px; margin-bottom: 6px; color: #E8A820; }
+  .card p { font-size: 13px; opacity: .7; line-height: 1.5; }
+  footer { text-align: center; padding: 2rem; font-size: 12px; opacity: .4; }
+</style>
+</head>
+<body>
+<header>
+  <h1>🥜 MENDORATO MINI GAMEZ</h1>
+  <p>Amendoim de quem sabe jogar</p>
+</header>
+<div class="grid">
+  <a class="card" href="sudoku.html">
+    <span class="icon">♟️</span>
+    <h2>Sudoku do Amendoim</h2>
+    <p>Resolva o Sudoku com os personagens da campanha e descubra quem roubou o amendoim. Foi a Paçoca?</p>
+  </a>
+  <a class="card" href="pega-o-amendoim.html">
+    <span class="icon">🐶</span>
+    <h2>Pega o Amendoim!</h2>
+    <p>A Paçoca está roubando os pacotinhos. Clique nela para detê-la antes que o tempo acabe!</p>
+  </a>
+  <a class="card" href="cara-a-cara.html">
+    <span class="icon">🕵️</span>
+    <h2>Qual é o personagem?</h2>
+    <p>Faça perguntas de sim/não para o Detetive Gustavo e descubra o personagem secreto!</p>
+  </a>
+</div>
+<footer>Mendorato · Projeto Integrador · PUC Campinas 2026</footer>
+</body>
+</html>
